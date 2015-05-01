@@ -33,6 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Vector;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
@@ -47,7 +48,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView cas;
     private TextView acc;
 
-    private int senzorFrekvenci = 0;
+    private final static int pocetHodnot = 50;
+    private SenzorValue [] values = new SenzorValue[pocetHodnot];
+    private int indexToPush = 0;
 
     private long lastTimeStamp = 0;
 
@@ -103,17 +106,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        if (indexToPush < values.length) {
+            SenzorValue tmp = new SenzorValue(event.timestamp, event.values);
+            values[indexToPush] = tmp;
+            indexToPush++;
+        } else {
+            float[] values = event.values;
+            viewX.setText(Float.toString(values[0]));
+            viewY.setText(Float.toString(values[1]));
+            viewZ.setText(Float.toString(values[2]));
+            //acc.setText(Long.toString(event.timestamp));
 
-        float [] values = event.values;
-        viewX.setText(Float.toString(values[0]));
-        viewY.setText(Float.toString(values[1]));
-        viewZ.setText(Float.toString(values[2]));
-        //acc.setText(Long.toString(event.timestamp));
-
-        this.cas.setText(Long.toString(Math.round((event.timestamp - lastTimeStamp) / nanoToMili)));
-        //this.cas.setText(Long.toString(event.timestamp - lastTimeStamp));
-        lastTimeStamp = event.timestamp;
-
+            this.cas.setText(Long.toString(Math.round((event.timestamp - lastTimeStamp) / nanoToMili)));
+            //this.cas.setText(Long.toString(event.timestamp - lastTimeStamp));
+            lastTimeStamp = event.timestamp;
+        }
     }
 
     @Override
@@ -138,6 +145,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return file;
     }
 
+    public void send(View view){
+
+    }
+
     public void save(View view){
         File file = getAlbumStorageDir("testJson.txt");
         Button but = (Button) findViewById(R.id.butID);
@@ -159,6 +170,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             jsonWriter.endArray();
             jsonWriter.close();*/
 
+            // funkcni zapis
+/*
             JSONObject obj = new JSONObject();
             obj.put("name", "mkyong.com");
             obj.put("age", new Integer(100));
@@ -171,9 +184,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             obj.put("messages", list);
 
             writer.write(obj.toString(4));
+*/
 
 
+            JSONArray list = new JSONArray();
+            float [] xyzPom;
+            for (int i = 0; i < values.length; i++){
+                JSONArray record = new JSONArray();
+                JSONArray xyz = new JSONArray();
+                xyzPom = values[i].getValues();
+                for (int j = 0; j < xyzPom.length; j++){
+                    xyz.put(xyzPom[j]);
+                }
+                record.put(xyz);
+                record.put(values[i].getTimeStamp());
 
+                list.put(record);
+            }
+
+            writer.write(list.toString(4));
 
             writer.close();
             stream.close();

@@ -91,9 +91,16 @@
 
     <Button
         android:id="@id/butID"
-        android:text="Button"
+        android:text="@string/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="save"/>
+
+    <Button
+        android:id="@id/butSendID"
+        android:text="@string/sendButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="send"/>
 
 </LinearLayout>

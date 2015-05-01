@@ -6,4 +6,5 @@
     <item name="casID" type="id">58</item>
     <item name="acur" type="id">59</item>
     <item name="butID" type="id">60</item>
+    <item name="butSendID" type="id">61</item>
 </resources>

@@ -19,6 +19,9 @@
     <string name="textViewID_X">X_id</string>
     <string name="textViewID_Y">Y_id</string>
     <string name="textViewID_Z">Z_id</string>
+    
+    <string name="sendButton">Send</string>
+    <string name="button">Button</string>
 
 
 </resources>
