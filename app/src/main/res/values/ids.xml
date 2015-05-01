@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="textViewID_X" type="id">55</item>
+    <item name="textViewID_Y" type="id">56</item>
+    <item name="textViewID_Z" type="id">57</item>
+    <item name="casID" type="id">58</item>
+    <item name="acur" type="id">59</item>
+    <item name="butID" type="id">60</item>
+</resources>

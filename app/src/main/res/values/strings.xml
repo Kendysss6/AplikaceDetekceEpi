@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Aplikace akcelerometru</string>
+
+    <string name="hello_world">Aplikace pro zobrazení accelemetru</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="smrad">Smrad</string>
+    <integer name="acc_X">1</integer>
+    <integer name="acc_Y">1</integer>
+    <integer name="acc_Z">1</integer>
+    <string name="text_X">Hodnota ve směru osy X</string>
+    <string name="text_Y">Hodnota ve směru osy Y</string>
+    <string name="text_Z">Hodnota ve směru osy Z</string>
+    <string name="cas">Čas</string>
+    <string name="accuracy">Přesnost</string>
+    <dimen name="gap">10dp</dimen>
+    <string name="button_name">Nove hodnoty</string>
+
+    <string name="textViewID_X">X_id</string>
+    <string name="textViewID_Y">Y_id</string>
+    <string name="textViewID_Z">Z_id</string>
+
+
+</resources>
