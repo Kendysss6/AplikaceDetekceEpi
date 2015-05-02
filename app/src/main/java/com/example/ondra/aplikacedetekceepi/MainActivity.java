@@ -7,12 +7,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.JsonWriter;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,20 +18,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
-import java.util.Vector;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
@@ -49,6 +40,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView acc;
 
     private final static int pocetHodnot = 50;
+    /**
+     * Budu ukladat data ve formatu:
+     * [
+     *      [X values]
+     *      [Y values]
+     *      [Z values]
+     *      [timeStamps]
+     * ]
+     *
+     */
     private SenzorValue [] values = new SenzorValue[pocetHodnot];
     private int indexToPush = 0;
 
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // TODO: fuck
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -145,10 +147,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return file;
     }
 
-    public void send(View view){
-
-    }
-
     public void save(View view){
         File file = getAlbumStorageDir("testJson.txt");
         Button but = (Button) findViewById(R.id.butID);
@@ -202,6 +200,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 list.put(record);
             }
 
+
+
             writer.write(list.toString(4));
 
             writer.close();
@@ -218,23 +218,119 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void sendToSever() throws IOException {
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            // fetch data
-        } else {
-            return;
+    // když kliknu na button zavola se mi nasledujici metoda sendToServer. data jsou uloženy v promene float [] values;
+// mam pronajatou nasledujici domenu http://kendy.besaba.com/ na něm skript http://paste2.org/Vdvnb6KZ
+    public void send(View view) {
+        Button but = (Button) findViewById(R.id.butSendID);
+        but.setText("klik");
+        try {
+            // overeni že jsem online Internet je zapnuty
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                // fetch data
+            } else {
+                return;
+            }
+            RetrieveFeedTask task = new RetrieveFeedTask();
+            task.execute("nothing");
+
+            but.setText("spusteno");
+        } catch (Exception e){
+            e.printStackTrace();
+            but.setText("Fail");
         }
 
-        URL url = new URL("http://www.android.com/");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+
+
+
 
     }
 
-    public void writeStringToJSON(String name) throws JSONException {
-        JSONObject jsonObj = new JSONObject();
-        jsonObj.put("name",name);
+    class RetrieveFeedTask extends AsyncTask<String, Void, Boolean> {
+
+        private Exception exception;
+
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL url = new URL("http://kendy.besaba.com/skript.php"); // skript http://paste2.org/Vdvnb6KZ
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setDoOutput(true);
+
+                con.setDoInput(true);
+
+                con.setRequestProperty("Content-Type", "application/json");
+
+                con.setRequestProperty("Accept", "application/json");
+
+                con.setRequestMethod("POST");
+/*
+                JSONObject cred = new JSONObject();
+                cred.put("username","adm");
+                cred.put("password", "pwd");
+*/
+                // nevim do dal
+                OutputStream stream = con.getOutputStream();
+                OutputStreamWriter writer = new OutputStreamWriter(stream, "UTF-8");
+
+                //data k zapisu jako JSON
+                // array a v nem 4x array X,Y,Z,timestamp
+                JSONArray list = new JSONArray();
+                JSONArray X = new JSONArray();
+                JSONArray Y = new JSONArray();
+                JSONArray Z = new JSONArray();
+                JSONArray time = new JSONArray();
+                float [] xyzPom;
+                for (int i = 0; i < values.length; i++){
+                    xyzPom = values[i].getValues();
+                    X.put(xyzPom[0]);
+                    Y.put(xyzPom[1]);
+                    Z.put(xyzPom[2]);
+                    time.put(values[i].getTimeStamp());
+                }
+                list.put(X);
+                list.put(Y);
+                list.put(Z);
+                list.put(time);
+
+                // zapis dat do streamu
+
+
+
+
+                writer.write(list.toString());
+                writer.flush();
+
+                StringBuilder sb = new StringBuilder();
+
+                int HttpResult =con.getResponseCode();
+
+                if(HttpResult != HttpURLConnection.HTTP_OK){
+                    throw  new Exception("spatna odezva");
+                }
+
+                writer.close();
+                stream.close();
+                con.disconnect();
+            } catch (Exception e){
+                e.printStackTrace();
+                return false;
+            }
+
+            return true;
+        }
+
+
+        protected void onPostExecute(Boolean feed) {
+            Button but = (Button) findViewById(R.id.butSendID);
+            if(feed){
+                but.setText("done");
+            } else {
+                but.setText("falnuto");
+            }
+        }
     }
+
+
 }
